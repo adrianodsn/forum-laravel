@@ -7,6 +7,6 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
 </p>
 
-## forum
+# Trabalhando com ACL no Laravel
 
 Projeto do curso Trabalhando com ACL no Laravel da Code Experts.
