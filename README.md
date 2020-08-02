@@ -9,4 +9,4 @@
 
 # Trabalhando com ACL no Laravel
 
-Projeto do curso Trabalhando com ACL no Laravel da Code Experts.
+Projeto prático de fórum do curso "Trabalhando com ACL no Laravel" da Code Experts.
