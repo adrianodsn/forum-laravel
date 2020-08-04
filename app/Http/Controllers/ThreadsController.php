@@ -47,9 +47,9 @@ class ThreadsController extends Controller
     {
         try {
             $user = User::find(1);
-            $thread = $request->all();
-            $thread['slug'] = Str::slug($thread['title']);
-            $user->threads()->create($thread);
+            $data = $request->all();
+            $data['slug'] = Str::slug($data['title']);
+            $user->threads()->create($data);
             return redirect()->route('threads.index');
         } catch (\Exception $e) {
             dd($e->getMessage());
@@ -96,7 +96,9 @@ class ThreadsController extends Controller
     {
         try {
             $thread = $this->thread->findOrFail($id);
-            $thread->update($request->all());
+            $data = $request->all();
+            $data['slug'] = Str::slug($data['title']);
+            $thread->update($data);
             dd('Tópico editado com sucesso.');
         } catch (\Exception $e) {
             dd($e->getMessage());
