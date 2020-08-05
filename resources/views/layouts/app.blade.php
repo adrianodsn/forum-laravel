@@ -33,7 +33,18 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
-
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{route('threads.index')}}">Tópicos</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" aria-labelledby="navbarDropdownMenuLink" role="button" data-toggle="dropdown">Canais</a>
+                                <div class="dropdown-menu">
+                                    <a href="{{route('threads.index')}}" class="dropdown-item">Todos</a>
+                                    @foreach (\App\Channel::orderBy('name')->get(['slug', 'name']) as $channel)
+                                        <a href="{{route('threads.index', ['channel'=>$channel->slug])}}" class="dropdown-item">{{$channel->name}}</a>
+                                    @endforeach
+                                </div>
+                        </li>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -74,6 +85,7 @@
 
         <main class="py-4">
             <div class="container">
+                @include('flash::message')
                 @yield('content')
             </div>
         </main>

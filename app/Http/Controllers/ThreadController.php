@@ -3,17 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\{Thread, User};
+use App\{Channel, Thread, User};
+use App\Http\Requests\ThreadRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
-class ThreadsController extends Controller
+class ThreadController extends Controller
 {
     protected $thread;
+    protected $channel;
 
-    public function __construct(Thread $thread)
+    public function __construct(Thread $thread, Channel $channel)
     {
         $this->thread = $thread;
+        $this->channel = $channel;
     }
 
     /**
@@ -21,9 +25,22 @@ class ThreadsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $threads = $this->thread->orderBy('created_at', 'DESC')->paginate(15);
+        //$this->authorize('threads/index');
+
+        // if (Gate::denies('access-index-thread')) {
+        //     dd('Não tenho permissão');
+        // }
+
+        $channelSlug = $request->channel;
+
+        if ($channelSlug) {
+            $threads = $this->channel->whereSlug($channelSlug)->first()->threads()->paginate(15);
+        } else {
+            $threads = $this->thread->orderBy('created_at', 'DESC')->paginate(15);
+        }
+
         return view('threads.index', compact('threads'));
     }
 
@@ -32,27 +49,33 @@ class ThreadsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Channel $channel)
     {
-        return view('threads.create');
+        return view(
+            'threads.create',
+            ['channels' => $channel->orderBy('name')->get()]
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\ThreadRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ThreadRequest $request)
     {
         try {
             $user = User::find(1);
             $data = $request->all();
             $data['slug'] = Str::slug($data['title']);
-            $user->threads()->create($data);
-            return redirect()->route('threads.index');
+            $thread = $user->threads()->create($data);
+            flash('Tópico criado.')->success();
+            return redirect()->route('threads.show', $thread->slug);
         } catch (\Exception $e) {
-            dd($e->getMessage());
+            $message = env('APP_DEBUG') ? $e->getMessage() : 'Erro ao processar sua requisição.';
+            flash($message)->warning();
+            return redirect()->back();
         }
     }
 
@@ -82,26 +105,30 @@ class ThreadsController extends Controller
     public function edit($id)
     {
         $thread = $this->thread->findOrFail($id);
+        $this->authorize('update', $thread);
         return view('threads.edit', compact('thread'));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\ThreadRequest  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ThreadRequest $request, $id)
     {
         try {
             $thread = $this->thread->findOrFail($id);
             $data = $request->all();
             $data['slug'] = Str::slug($data['title']);
             $thread->update($data);
-            dd('Tópico editado com sucesso.');
+            flash('Tópico editado.')->success();
+            return redirect()->route('threads.show', $thread->slug);
         } catch (\Exception $e) {
-            dd($e->getMessage());
+            $message = env('APP_DEBUG') ? $e->getMessage() : 'Erro ao processar sua requisição.';
+            flash($message)->warning();
+            return redirect()->back();
         }
     }
 
@@ -116,9 +143,12 @@ class ThreadsController extends Controller
         try {
             $thread = $this->thread->findOrFail($id);
             $thread->delete();
-            dd('Tópico excluído com sucesso.');
+            flash('Tópico excluído.')->success();
+            return redirect()->route('threads.index');
         } catch (\Exception $e) {
-            dd($e->getMessage());
+            $message = env('APP_DEBUG') ? $e->getMessage() : 'Erro ao processar sua requisição.';
+            flash($message)->warning();
+            return redirect()->back();
         }
     }
 }

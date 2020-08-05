@@ -37,13 +37,23 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    public function isAdmin()
+    {
+        return false;
+    }
+
     public function threads()
     {
-        return $this->hasMany(Thread::class);
+        return $this->hasMany(Thread::class)->orderBy('created_at', 'DESC');
     }
 
     public function replies()
     {
-        return $this->hasMany(Reply::class);
+        return $this->hasMany(Reply::class)->orderBy('created_at', 'DESC');
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 }

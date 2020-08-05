@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,12 +14,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
+Route::group(['middleware' => 'access.control'], function () {
+    Route::resource('threads', 'ThreadController');
 });
 
-Route::resource('threads', 'ThreadsController');
+Route::post('replies', 'ReplyController@store')->name('replies.store');
 
 Auth::routes();
 
+Route::get('/', 'ThreadController@index');
 Route::get('/home', 'HomeController@index')->name('home');

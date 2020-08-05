@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Resource;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -13,7 +14,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array
      */
     protected $policies = [
-        // 'App\Model' => 'App\Policies\ModelPolicy',
+        'App\Thread' => 'App\Policies\ThreadPolicy',
     ];
 
     /**
@@ -25,6 +26,12 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+        $resources = Resource::all();
+
+        foreach ($resources as $resource) {
+            Gate::define($resource->resource, function ($user) use ($resource) {
+                return $resource->roles->contains($user->role);
+            });
+        }
     }
 }
